@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import './AddProduct.css';
 import upload_area from '../../assets/upload_area.svg';
 
+// Define your backend URL as a constant
+const BACKEND_URL = 'https://mern-e-commerce-backend-9xbi.onrender.com'; // <-- Your deployed Render backend URL
+
 const AddProduct = () => {
   const [image, setImage] = useState(false);
   const [productDetails, setProductDetails] = useState({
@@ -14,46 +17,74 @@ const AddProduct = () => {
 
   const imageHandler = (e) => {
     setImage(e.target.files[0]);
+    // Note: productDetails.image will temporarily hold the File object
+    // It will be replaced by the image_url from the backend after upload
     setProductDetails({ ...productDetails, image: e.target.files[0] });
   };
 
   const changeHandler = (e) => {
     setProductDetails({ ...productDetails, [e.target.name]: e.target.value });
   };
-const Add_Product = async () => {
-  console.log(productDetails);
-  let responseData;
-  let product = productDetails;
-  let formData = new FormData();
-  formData.append('product', image);
 
-  await fetch('http://localhost:4000/upload', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-    },
-    body: formData,
-  }).then((resp)=> resp.json()).then((data)=>{responseData=data});
-     if(responseData.success)
-        {
-            product.image=responseData.image_url;
-            console.log(product);
-            await fetch('http://localhost:4000/addproduct',{
-              method:'Post',
-              headers:{
-                Accept:'application/json',
-                'Content-Type':'application/json',
+  const Add_Product = async () => {
+    console.log(productDetails);
+    let responseData;
+    let product = { ...productDetails }; // Create a copy to avoid direct mutation issues
 
+    let formData = new FormData();
+    formData.append('product', image);
 
-              },
-              body:JSON.stringify(product),
+    try {
+      // First, upload the image
+      const uploadResponse = await fetch(`${BACKEND_URL}/upload`, { // <-- Updated URL
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          // Note: Do NOT set Content-Type for FormData, browser sets it automatically with boundary
+        },
+        body: formData,
+      });
 
-            }).then((resp)=>resp.json()).then((data)=>{
-              data.success?alert("Product Added"):alert("Failed")
-            })
+      responseData = await uploadResponse.json();
+
+      if (responseData.success) {
+        product.image = responseData.image_url;
+        console.log(product);
+
+        // Then, add the product with the received image URL
+        const addProductResponse = await fetch(`${BACKEND_URL}/addproduct`, { // <-- Updated URL
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(product),
+        });
+
+        const addProductData = await addProductResponse.json();
+        addProductData.success ? alert("Product Added") : alert("Failed to add product");
+
+        // Clear form after successful addition (optional)
+        if (addProductData.success) {
+            setProductDetails({
+                name: "",
+                image: "", // Clear image state as well
+                category: "women",
+                new_price: "",
+                old_price: ""
+            });
+            setImage(false); // Clear the image preview
         }
 
-  }
+      } else {
+        alert("Image upload failed!");
+        console.error("Image upload failed:", responseData);
+      }
+    } catch (error) {
+      console.error("An error occurred during product addition:", error);
+      alert("An error occurred. Please check console for details.");
+    }
+  };
 
   return (
     <div className="addproduct">
@@ -122,7 +153,7 @@ const Add_Product = async () => {
         />
       </div>
 
-      <button onClick={()=>{Add_Product()}} className="addproduct-btn">ADD</button>
+      <button onClick={() => { Add_Product() }} className="addproduct-btn">ADD</button>
     </div>
   );
 };
