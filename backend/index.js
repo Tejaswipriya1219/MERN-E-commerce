@@ -14,9 +14,9 @@ app.use(express.json());
 // Ensure CORS allows requests from your deployed frontend and admin sites
 app.use(cors({
     origin: [
-        'https://mern-e-commerce-frontend-0xif.onrender.com', // Your deployed frontend URL
-        'https://my-ecommerce-admin.onrender.com' // Your deployed admin URL (replace if different)
-        // Add other frontend/admin origins if you have them, or use '*' for development (less secure)
+        'https://mern-e-commerce-frontend-0xif.onrender.com', // Your deployed frontend URL (keep this!)
+        'https://mern-e-commerce-admin-0lf5.onrender.com'   // <-- **CHANGE THIS TO THE EXACT URL FROM THE ERROR!**
+        // You can also add 'http://localhost:3000', 'http://localhost:5173' if you develop locally with different ports for frontend/admin
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
