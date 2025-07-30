@@ -29,6 +29,10 @@ app.use(cors({
 
 
 // Database Connection - USE ENVIRONMENT VARIABLE (set this in Render Dashboard)
+// In backend/index.js (or server.js)
+// Add this line for debugging:
+console.log("DEBUG: MONGODB_URI from process.env:", process.env.MONGODB_URI);
+
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("MongoDB Connection Error:", err));
