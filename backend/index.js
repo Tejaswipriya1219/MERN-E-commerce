@@ -11,12 +11,16 @@ const cors = require("cors");
 const port = process.env.PORT || 4000;
 
 app.use(express.json());
+
 // Ensure CORS allows requests from your deployed frontend and admin sites
+// Add your local development URLs for convenience, but they won't be used on Render
 app.use(cors({
     origin: [
-        'https://mern-e-commerce-frontend-0xif.onrender.com', // Your deployed frontend URL (keep this!)
-        'https://mern-e-commerce-admin-0lf5.onrender.com'   // <-- **CHANGE THIS TO THE EXACT URL FROM THE ERROR!**
-        // You can also add 'http://localhost:3000', 'http://localhost:5173' if you develop locally with different ports for frontend/admin
+        'https://mern-e-commerce-frontend-0xif.onrender.com', // Your deployed frontend URL
+        'https://mern-e-commerce-admin-0lf5.onrender.com',   // Your deployed admin URL
+        'http://localhost:3000', // For local React dev server (default CRA)
+        'http://localhost:5173', // For local Vite dev server (default Vite)
+        // Add any other specific local development ports if you use them
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
@@ -24,7 +28,7 @@ app.use(cors({
 }));
 
 
-// Database Connection - USE ENVIRONMENT VARIABLE
+// Database Connection - USE ENVIRONMENT VARIABLE (set this in Render Dashboard)
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("MongoDB Connection Error:", err));
@@ -34,9 +38,8 @@ app.get("/", (req, res) => {
   res.send("Express App is Running");
 });
 
-// Image Storage Engine
-// Note: On Render's free tier, files saved here will be lost on service restarts.
-// For production, consider persistent storage like Cloudinary or Render Persistent Disks (paid).
+// Image Storage Engine (NOTE: Images saved here are temporary on Render's free tier!)
+// For production, highly recommend Cloudinary, AWS S3, or Render Persistent Disks (paid).
 const storage=multer.diskStorage({
     destination:'./upload/images',
     filename:(req,file,cb)=>{
@@ -105,7 +108,7 @@ app.post('/addproduct',async (req,res)=>{
   }
 
   const product = new Product({
-    id:req.body.id || id, // Use existing ID if provided, otherwise generate
+    id:req.body.id || id, 
     name:req.body.name,
     image:req.body.image,
     category:req.body.category,
@@ -183,7 +186,7 @@ app.post('/signup',async(req,res)=>{
       id:user.id
     }
   }
-  // Use environment variable for JWT secret
+  // Use environment variable for JWT secret (set this in Render Dashboard)
   const token = jwt.sign(data, process.env.JWT_SECRET); 
   res.json({success:true,token})
 })
@@ -206,7 +209,7 @@ app.post('/login', async (req, res) => {
       id: user.id
     }
   };
-  // Use environment variable for JWT secret
+  // Use environment variable for JWT secret (set this in Render Dashboard)
   const token = jwt.sign(data, process.env.JWT_SECRET);
   return res.status(200).json({ success: true, token });
 });
@@ -214,8 +217,7 @@ app.post('/login', async (req, res) => {
 // creating endpoint for newcollection data
 app.get('/newCollections',async(req,res)=>{
   let products = await Product.find({});
-  // Ensure products are sorted if slicing by index makes a difference to 'new'
-  let newcollection = products.slice(1).slice(-8);
+  let newcollection = products.slice(1).slice(-8); // Consider sorting if order is important for "new"
   console.log("NewCollection Fetched");
   res.send(newcollection);
 })
@@ -235,7 +237,7 @@ const fetchUser = async(req, res, next) => {
     res.status(401).send({ errors: "Please authenticate using valid token" })
   } else {
     try {
-      // Use environment variable for JWT secret
+      // Use environment variable for JWT secret (set this in Render Dashboard)
       const data = jwt.verify(token, process.env.JWT_SECRET);
       req.user = data.user;
       next(); 
