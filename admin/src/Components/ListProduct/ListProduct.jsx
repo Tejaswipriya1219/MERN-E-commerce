@@ -3,14 +3,14 @@ import './ListProduct.css'
 import cross_icon from '../../assets/cross_icon.png'
 
 // Define your backend URL as a constant
-const BACKEND_URL = 'https://mern-e-commerce-backend-9xbi.onrender.com'; // <-- Your deployed Render backend URL
+const BACKEND_URL = 'https://mern-e-commerce-backend-9xbi.onrender.com';
 
-const ListProduct = () => {
+export const ListProduct = () => {
   const [allproducts, setAllProducts] = useState([]);
 
   const fetchInfo = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/allproducts`); // <-- Updated URL
+      const response = await fetch(`${BACKEND_URL}/allproducts`);
       const data = await response.json();
       setAllProducts(data);
     } catch (error) {
@@ -20,11 +20,11 @@ const ListProduct = () => {
 
   useEffect(() => {
     fetchInfo();
-  }, []) // Empty dependency array means this runs once on mount
+  }, []) 
 
   const remove_product = async (id) => {
     try {
-      await fetch(`${BACKEND_URL}/removeproduct`, { // <-- Updated URL
+      await fetch(`${BACKEND_URL}/removeproduct`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -53,7 +53,7 @@ const ListProduct = () => {
         <hr />
         {allproducts.map((product, index) => {
           return (
-            <React.Fragment key={index}> {/* Using React.Fragment for key */}
+            <React.Fragment key={index}>
               <div className="listproduct-format-main listproduct-format">
                 <img src={product.image} alt="" className="listproduct-product-icon" />
                 <p>{product.name}</p>
