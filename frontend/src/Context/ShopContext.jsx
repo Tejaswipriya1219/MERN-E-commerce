@@ -10,9 +10,8 @@ const getDefaultCart = () => {
     return cart;
 };
 
-// Define your backend URL as a constant for easier management
-// In a real production app, you might get this from an environment variable (e.g., process.env.REACT_APP_BACKEND_URL)
-const BACKEND_URL = 'https://mern-e-commerce-backend-9xbi.onrender.com'; // <-- Updated URL
+// Define your deployed backend URL as a constant
+const BACKEND_API_BASE_URL = 'https://mern-e-commerce-backend-9xbi.onrender.com';
 
 const ShopContextProvider = (props) => {
     const [all_product, setAll_Product] = useState([]);
@@ -20,14 +19,14 @@ const ShopContextProvider = (props) => {
 
     useEffect(() => {
         // Fetch all products
-        fetch(`${BACKEND_URL}/allproducts`) // <-- Updated URL
+        fetch(`${BACKEND_API_BASE_URL}/allproducts`)
             .then((response) => response.json())
             .then((data) => setAll_Product(data))
-            .catch((error) => console.error("Error fetching all products:", error)); // Add error handling
+            .catch((error) => console.error("Error fetching all products:", error));
 
         // Fetch cart if user is logged in
         if (localStorage.getItem('auto-token')) {
-            fetch(`${BACKEND_URL}/getcart`, { // <-- Updated URL
+            fetch(`${BACKEND_API_BASE_URL}/getcart`, {
                 method: 'POST',
                 headers: {
                     'auth-token': localStorage.getItem('auto-token'),
@@ -43,9 +42,9 @@ const ShopContextProvider = (props) => {
                         console.error("Received unexpected data for cart:", data);
                     }
                 })
-                .catch((error) => console.error("Error fetching cart:", error)); // Add error handling
+                .catch((error) => console.error("Error fetching cart:", error));
         }
-    }, []); // Empty dependency array means this runs once on mount
+    }, []);
 
     const addToCart = (itemId) => {
         setCartItems((prev) => ({
@@ -54,7 +53,7 @@ const ShopContextProvider = (props) => {
         }));
 
         if (localStorage.getItem('auto-token')) {
-            fetch(`${BACKEND_URL}/addtocart`, { // <-- Updated URL
+            fetch(`${BACKEND_API_BASE_URL}/addtocart`, {
                 method: 'POST',
                 headers: {
                     'auth-token': localStorage.getItem('auto-token'),
@@ -64,7 +63,7 @@ const ShopContextProvider = (props) => {
             })
                 .then((response) => response.json())
                 .then((data) => console.log('Add to cart:', data))
-                .catch((error) => console.error("Error adding to cart:", error)); // Add error handling
+                .catch((error) => console.error("Error adding to cart:", error));
         }
     };
 
@@ -75,7 +74,7 @@ const ShopContextProvider = (props) => {
         }));
 
         if (localStorage.getItem('auto-token')) {
-            fetch(`${BACKEND_URL}/removefromcart`, { // <-- Updated URL
+            fetch(`${BACKEND_API_BASE_URL}/removefromcart`, {
                 method: 'POST',
                 headers: {
                     'auth-token': localStorage.getItem('auto-token'),
@@ -85,7 +84,7 @@ const ShopContextProvider = (props) => {
             })
                 .then((response) => response.json())
                 .then((data) => console.log('Remove from cart:', data))
-                .catch((error) => console.error("Error removing from cart:", error)); // Add error handling
+                .catch((error) => console.error("Error removing from cart:", error));
         }
     };
 
