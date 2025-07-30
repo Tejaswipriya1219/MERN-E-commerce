@@ -3,7 +3,7 @@ import './AddProduct.css';
 import upload_area from '../../assets/upload_area.svg';
 
 // Define your backend URL as a constant
-const BACKEND_URL = 'https://mern-e-commerce-backend-9xbi.onrender.com'; // <-- Your deployed Render backend URL
+const BACKEND_URL = 'https://mern-e-commerce-backend-9xbi.onrender.com';
 
 const AddProduct = () => {
   const [image, setImage] = useState(false);
@@ -17,8 +17,6 @@ const AddProduct = () => {
 
   const imageHandler = (e) => {
     setImage(e.target.files[0]);
-    // Note: productDetails.image will temporarily hold the File object
-    // It will be replaced by the image_url from the backend after upload
     setProductDetails({ ...productDetails, image: e.target.files[0] });
   };
 
@@ -29,18 +27,17 @@ const AddProduct = () => {
   const Add_Product = async () => {
     console.log(productDetails);
     let responseData;
-    let product = { ...productDetails }; // Create a copy to avoid direct mutation issues
+    let product = { ...productDetails }; 
 
     let formData = new FormData();
     formData.append('product', image);
 
     try {
       // First, upload the image
-      const uploadResponse = await fetch(`${BACKEND_URL}/upload`, { // <-- Updated URL
+      const uploadResponse = await fetch(`${BACKEND_URL}/upload`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
-          // Note: Do NOT set Content-Type for FormData, browser sets it automatically with boundary
         },
         body: formData,
       });
@@ -52,7 +49,7 @@ const AddProduct = () => {
         console.log(product);
 
         // Then, add the product with the received image URL
-        const addProductResponse = await fetch(`${BACKEND_URL}/addproduct`, { // <-- Updated URL
+        const addProductResponse = await fetch(`${BACKEND_URL}/addproduct`, {
           method: 'POST',
           headers: {
             Accept: 'application/json',
@@ -68,12 +65,12 @@ const AddProduct = () => {
         if (addProductData.success) {
             setProductDetails({
                 name: "",
-                image: "", // Clear image state as well
+                image: "", 
                 category: "women",
                 new_price: "",
                 old_price: ""
             });
-            setImage(false); // Clear the image preview
+            setImage(false); 
         }
 
       } else {
