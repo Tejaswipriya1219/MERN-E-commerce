@@ -110,9 +110,6 @@ This project is deployed on [Render](https://render.com/). It utilizes three sep
 **Persistent Image Storage:**
 On Render's free tier, images uploaded using Multer's disk storage will be lost on service restarts. For persistent storage in a production environment, it is highly recommended to integrate a cloud storage solution like [Cloudinary](https://cloudinary.com/) or [AWS S3](https://aws.amazon.com/s3/). Alternatively, Render's paid instances offer [Persistent Disks](https://render.com/docs/disks).
 
-## 📸 Screenshots
-
-*(You can add screenshots of your running application here to showcase its UI.)*
 
 ## 🤝 Contributing
 
