@@ -5,34 +5,34 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
+const cloudinary = require('cloudinary').v2; // ADD THIS
 
 // Use process.env.PORT for dynamic port assignment by hosting providers like Render
-// Fallback to 4000 for local development
 const port = process.env.PORT || 4000;
 
 app.use(express.json());
 
 // Ensure CORS allows requests from your deployed frontend and admin sites
-// Add your local development URLs for convenience, but they won't be used on Render
 app.use(cors({
     origin: [
-        'https://mern-e-commerce-frontend-0xif.onrender.com', // Your deployed frontend URL
-        'https://mern-e-commerce-admin-0lf5.onrender.com',   // Your deployed admin URL
-        'http://localhost:3000', // For local React dev server (default CRA)
-        'http://localhost:5173', // For local Vite dev server (default Vite)
-        // Add any other specific local development ports if you use them
+        'https://mern-e-commerce-frontend-0xif.onrender.com', 
+        'https://mern-e-commerce-admin-0lf5.onrender.com',   
+        'http://localhost:3000', 
+        'http://localhost:5173', 
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'auth-token'],
 }));
 
+// Configure Cloudinary with environment variables
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// Database Connection - USE ENVIRONMENT VARIABLE (set this in Render Dashboard)
-// In backend/index.js (or server.js)
-// Add this line for debugging:
-console.log("DEBUG: MONGODB_URI from process.env:", process.env.MONGODB_URI);
-
+// Database Connection - USE ENVIRONMENT VARIABLE
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("MongoDB Connection Error:", err));
@@ -42,26 +42,34 @@ app.get("/", (req, res) => {
   res.send("Express App is Running");
 });
 
-// Image Storage Engine (NOTE: Images saved here are temporary on Render's free tier!)
-// For production, highly recommend Cloudinary, AWS S3, or Render Persistent Disks (paid).
-const storage=multer.diskStorage({
-    destination:'./upload/images',
-    filename:(req,file,cb)=>{
-        return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
+// Image Storage Engine (using multer memory storage for Cloudinary)
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
+});
+
+// Creating Upload Endpoint for images using Cloudinary
+app.post("/upload", upload.single('product'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: 0, message: "No file uploaded" });
+        }
+        // Upload image to Cloudinary from memory buffer
+        const b64 = Buffer.from(req.file.buffer).toString("base64");
+        let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+        const result = await cloudinary.uploader.upload(dataURI);
+
+        res.json({
+            success: 1,
+            image_url: result.secure_url // Cloudinary provides a permanent, secure URL
+        });
+    } catch (error) {
+        console.error("Cloudinary upload error:", error);
+        res.status(500).json({ success: 0, message: "Cloudinary upload failed" });
     }
-})
-
-const upload=multer({storage:storage})
-
-//Creating Upload Endpoint for images
-app.use('/images',express.static('upload/images'))
-app.post("/upload",upload.single('product'),(req,res)=>{
-    res.json({
-        success:1,
-        // Construct image_url using an environment variable for the public backend URL
-        image_url: `${process.env.BACKEND_PUBLIC_URL}/images/${req.file.filename}`
-    }) 
-}) 
+});
+// Remove the express.static line as images are now served from Cloudinary
+// app.use('/images', express.static('upload/images')); 
 
 // Schema for creating products
 const Product=mongoose.model("Product",{
@@ -221,7 +229,7 @@ app.post('/login', async (req, res) => {
 // creating endpoint for newcollection data
 app.get('/newCollections',async(req,res)=>{
   let products = await Product.find({});
-  let newcollection = products.slice(1).slice(-8); // Consider sorting if order is important for "new"
+  let newcollection = products.slice(1).slice(-8); 
   console.log("NewCollection Fetched");
   res.send(newcollection);
 })
